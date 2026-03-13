@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="App de gestión de pedidos para GrupoMark">
+  <meta name="theme-color" content="#ff6d3b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Pedidos GrupoMark</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Google Fonts — Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== PANTALLA INICIO ===== -->
+  <div id="screen-home" class="screen active">
+    <header class="app-header">
+      <h1>Grupo<span>Mark</span></h1>
+    </header>
+
+    <div class="home-hero">
+      <div class="hero-icon">📦</div>
+      <h2>Pedidos de Ventas</h2>
+      <p>Crea y gestiona pedidos fácilmente</p>
+    </div>
+
+    <!-- Info de sincronización -->
+    <div class="sync-info" id="sync-info">
+      <div class="sync-text">
+        <strong id="sync-count">0</strong> productos · Sync: <span id="sync-date">Nunca</span>
+      </div>
+    </div>
+
+    <div class="home-buttons">
+      <button class="btn btn-primary btn-block" onclick="navegarA('screen-pedido')">
+        ✚ Crear nuevo pedido
+      </button>
+      <button class="btn btn-outline btn-block" onclick="navegarA('screen-guardados')">
+        📋 Pedidos guardados
+      </button>
+      <button class="btn btn-secondary btn-block" id="btn-sync" onclick="sincronizarTodo()">
+        🔄 Actualizar productos y clientes
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== PANTALLA CREAR PEDIDO ===== -->
+  <div id="screen-pedido" class="screen">
+    <header class="app-header">
+      <button class="header-back-btn" onclick="navegarA('screen-home')">← Inicio</button>
+      <h1>Nuevo <span>Pedido</span></h1>
+    </header>
+
+    <!-- Sección: Cliente -->
+    <div class="card">
+      <div class="card-title">👤 Cliente</div>
+      <div id="cliente-chip-container"></div>
+      <div class="input-group dropdown-wrapper" id="cliente-wrapper">
+        <input type="text" class="input-field" id="input-cliente"
+               placeholder="Buscar cliente..." autocomplete="off">
+        <div class="dropdown-list" id="dropdown-clientes"></div>
+      </div>
+    </div>
+
+    <!-- Sección: Producto -->
+    <div class="card">
+      <div class="card-title">📦 Agregar producto</div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="tab-catalogo" onclick="cambiarTab(this)">Del catálogo</button>
+        <button class="tab" data-tab="tab-libre" onclick="cambiarTab(this)">Texto libre</button>
+      </div>
+
+      <!-- Tab: Catálogo -->
+      <div class="tab-content active" id="tab-catalogo">
+        <div class="input-group dropdown-wrapper">
+          <input type="text" class="input-field" id="input-producto"
+                 placeholder="Buscar por código o nombre..." autocomplete="off">
+          <div class="dropdown-list" id="dropdown-productos"></div>
+        </div>
+        <div class="selected-product" id="selected-product">
+          <span class="sp-code" id="sp-code"></span>
+          <span class="sp-name" id="sp-name"></span>
+        </div>
+      </div>
+
+      <!-- Tab: Texto libre -->
+      <div class="tab-content" id="tab-libre">
+        <div class="input-group">
+          <label>Código / Modelo</label>
+          <input type="text" class="input-field" id="input-codigo-libre"
+                 placeholder="Ej: ABC-123">
+        </div>
+        <div class="input-group">
+          <label>Descripción (opcional)</label>
+          <input type="text" class="input-field" id="input-desc-libre"
+                 placeholder="Descripción del producto">
+        </div>
+      </div>
+
+      <!-- Cantidad + Añadir -->
+      <div class="add-product-row">
+        <div class="qty-control">
+          <button class="qty-btn" onclick="cambiarCantidad(-1)">−</button>
+          <input type="number" class="qty-value" id="input-cantidad" value="1" min="1">
+          <button class="qty-btn" onclick="cambiarCantidad(1)">+</button>
+        </div>
+        <button class="btn btn-primary" style="flex:1" onclick="agregarProducto()">
+          ＋ Añadir al pedido
+        </button>
+      </div>
+    </div>
+
+    <!-- Sección: Tabla del pedido -->
+    <div class="card">
+      <div class="card-title">🛒 Productos en el pedido</div>
+      <div class="order-table-wrapper">
+        <table class="order-table" id="tabla-pedido">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Código</th>
+              <th>Descripción</th>
+              <th>Cant.</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pedido">
+          </tbody>
+        </table>
+        <div class="empty-table-msg" id="empty-msg">Aún no hay productos añadidos</div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="actions-row">
+      <button class="btn btn-primary" onclick="generarPDF()">📄 Generar PDF</button>
+      <button class="btn btn-outline" onclick="guardarPedido()">💾 Guardar pedido</button>
+    </div>
+  </div>
+
+  <!-- ===== PANTALLA PEDIDOS GUARDADOS ===== -->
+  <div id="screen-guardados" class="screen">
+    <header class="app-header">
+      <button class="header-back-btn" onclick="navegarA('screen-home')">← Inicio</button>
+      <h1>Pedidos <span>Guardados</span></h1>
+    </header>
+
+    <div class="card">
+      <div id="lista-guardados">
+        <div class="empty-table-msg" id="empty-guardados">No hay pedidos guardados</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- Spinner overlay -->
+<div class="spinner-overlay" id="spinner-overlay">
+  <div class="spinner"></div>
+  <div class="spinner-text" id="spinner-text">Sincronizando...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- jsPDF desde CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- App -->
+<script src="app.js"></script>
+
+<!-- Registro del Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => console.log('[App] SW registrado:', reg.scope))
+        .catch((err) => console.error('[App] Error SW:', err));
+    });
+  }
+</script>
+
+</body>
+</html>
