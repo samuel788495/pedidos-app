@@ -4,14 +4,16 @@
 // Network Only para API de Dolibarr
 // ============================================
 
-const CACHE_NAME = 'pedidos-grupomark-v8';
+const CACHE_NAME = 'pedidos-grupomark-v9';
 
 const STATIC_ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // --- INSTALL: pre-cachear archivos estáticos ---

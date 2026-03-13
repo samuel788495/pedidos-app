@@ -42,7 +42,7 @@ function cargarDatosDePruebaSiVacio() {
   }
 }
 
-const CURRENT_VERSION = 'v8';
+const CURRENT_VERSION = 'v9';
 
 function limpiarCacheViejo() {
   const v = localStorage.getItem('app_version');
@@ -664,7 +664,7 @@ function escaparHTML(str) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('[App] ✅ app.js v8 cargado correctamente');
+  console.log('[App] ✅ app.js v9 cargado correctamente');
 
   try {
     limpiarCacheViejo();
