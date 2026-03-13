@@ -42,7 +42,7 @@ function cargarDatosDePruebaSiVacio() {
   }
 }
 
-const CURRENT_VERSION = 'v7';
+const CURRENT_VERSION = 'v8';
 
 function limpiarCacheViejo() {
   const v = localStorage.getItem('app_version');
@@ -525,26 +525,40 @@ function generarPDF(pedidoData) {
   const totalCant = items.reduce((sum, item) => sum + item.cantidad, 0);
   doc.text(`Total: ${items.length} líneas · ${totalCant} unidades`, margin, y);
 
-  // --- Descargar y Abrir PDF ---
+  // --- Compartir o Descargar PDF ---
   const fechaDoc = new Date(fecha);
   const dia = String(fechaDoc.getDate()).padStart(2, '0');
   const mes = String(fechaDoc.getMonth() + 1).padStart(2, '0');
   const anio = String(fechaDoc.getFullYear()).slice(-2);
   
-  // Limpiar nombre del cliente para archivo (quitar espacios y caracteres raros)
   const nombreLimpio = cliente.replace(/[^a-zA-Z0-9]/g, '_').replace(/_{2,}/g, '_');
   const nombreArchivo = `Pedido_${nombreLimpio}_${dia}-${mes}-${anio}.pdf`;
   
   const pdfBlob = doc.output('blob');
+
+  // API Nativa para Compartir (Excelente para celulares/PWA)
+  if (navigator.canShare) {
+    const file = new File([pdfBlob], nombreArchivo, { type: 'application/pdf' });
+    if (navigator.canShare({ files: [file] })) {
+      navigator.share({
+        title: nombreArchivo,
+        files: [file]
+      }).then(() => {
+        mostrarToast('PDF compartido');
+      }).catch((err) => {
+        console.error('Error al compartir:', err);
+        // Fallback si el usuario cancela o falla
+        doc.save(nombreArchivo);
+      });
+      return; 
+    }
+  }
+
+  // Fallback Clásico (Computadoras o si falla el share nativo)
+  doc.save(nombreArchivo);
+  
+  // Opcional: abrir en pestaña nueva para computadoras
   const pdfUrl = URL.createObjectURL(pdfBlob);
-
-  // Descargar
-  const link = document.createElement('a');
-  link.href = pdfUrl;
-  link.download = nombreArchivo;
-  link.click();
-
-  // Abrir en pestaña nueva
   window.open(pdfUrl, '_blank');
 }
 
@@ -650,7 +664,7 @@ function escaparHTML(str) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('[App] ✅ app.js v7 cargado correctamente');
+  console.log('[App] ✅ app.js v8 cargado correctamente');
 
   try {
     limpiarCacheViejo();
