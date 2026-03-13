@@ -4,7 +4,7 @@
 // Network Only para API de Dolibarr
 // ============================================
 
-const CACHE_NAME = 'pedidos-grupomark-v6';
+const CACHE_NAME = 'pedidos-grupomark-v7';
 
 const STATIC_ASSETS = [
   './',

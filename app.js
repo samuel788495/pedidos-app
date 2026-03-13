@@ -42,7 +42,7 @@ function cargarDatosDePruebaSiVacio() {
   }
 }
 
-const CURRENT_VERSION = 'v6';
+const CURRENT_VERSION = 'v7';
 
 function limpiarCacheViejo() {
   const v = localStorage.getItem('app_version');
@@ -525,7 +525,7 @@ function generarPDF(pedidoData) {
   const totalCant = items.reduce((sum, item) => sum + item.cantidad, 0);
   doc.text(`Total: ${items.length} líneas · ${totalCant} unidades`, margin, y);
 
-  // --- Descargar PDF directamente ---
+  // --- Descargar y Abrir PDF ---
   const fechaDoc = new Date(fecha);
   const dia = String(fechaDoc.getDate()).padStart(2, '0');
   const mes = String(fechaDoc.getMonth() + 1).padStart(2, '0');
@@ -535,7 +535,17 @@ function generarPDF(pedidoData) {
   const nombreLimpio = cliente.replace(/[^a-zA-Z0-9]/g, '_').replace(/_{2,}/g, '_');
   const nombreArchivo = `Pedido_${nombreLimpio}_${dia}-${mes}-${anio}.pdf`;
   
-  doc.save(nombreArchivo);
+  const pdfBlob = doc.output('blob');
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+
+  // Descargar
+  const link = document.createElement('a');
+  link.href = pdfUrl;
+  link.download = nombreArchivo;
+  link.click();
+
+  // Abrir en pestaña nueva
+  window.open(pdfUrl, '_blank');
 }
 
 // ============================================
@@ -640,7 +650,7 @@ function escaparHTML(str) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('[App] ✅ app.js v6 cargado correctamente');
+  console.log('[App] ✅ app.js v7 cargado correctamente');
 
   try {
     limpiarCacheViejo();
